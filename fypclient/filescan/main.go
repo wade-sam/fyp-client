@@ -18,36 +18,23 @@ type fileScanResult struct {
 	filepath map[string]fileData
 }
 
-//var files []fileData
-//var fileStruct map[string]fileData
-//var fileScanResult map[string]fileData
-
 func main() {
-	//filescanResult := make(map[string]fileData)
 	fmt.Println("Hello you yute!")
 	subDirToSkip := "golib"
 	head := "/backup/Documents"
-	//scanHolder := filesHolder
 	fileScanResult := directoryScan(head, subDirToSkip)
 
 	for key, value := range fileScanResult.filepath {
 		fmt.Println(key, value.filename, value.checksum)
 	}
-
-	//	for _, value := range files {
-	//	fmt.Println(value.filepath, value.filename, value.checksum)
-	//}
 }
 
 func directoryScan(startingPoint string, skip string) fileScanResult {
-
-	//fileOutput := make(map[string]fileData)
 	tempHolder := make(map[string]fileData)
 
 	filepath.Walk(startingPoint, func(path string, info os.FileInfo, err error) error {
-		//outputScan := fileStruct
 		if err != nil {
-			//fmt.Println("prevent panic by handling failure accessing a path %q: %v\n", path, err)
+			fmt.Println("prevent panic by handling failure accessing a path %q: %v\n", path, err)
 			return err
 		}
 		if info.IsDir() && info.Name() == skip {
@@ -64,10 +51,6 @@ func directoryScan(startingPoint string, skip string) fileScanResult {
 				filepath: filePath,
 				checksum: checkSum,
 			}
-
-			//fileScanResult[path] = file
-			//outputScan[path] = file
-			//files = append(files, file)
 			tempHolder[path] = file
 		}
 
