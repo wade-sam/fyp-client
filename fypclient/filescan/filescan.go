@@ -1,4 +1,4 @@
-package main
+package filescan
 
 import (
 	"crypto/sha256"
@@ -9,28 +9,17 @@ import (
 	"path/filepath"
 )
 
-type fileData struct {
-	filepath string
-	filename string
-	checksum string
+type FileData struct {
+	Filepath string
+	Filename string
+	Checksum string
 }
-type fileScanResult struct {
-	filepath map[string]fileData
-}
-
-func main() {
-	fmt.Println("Hello you yute!")
-	subDirToSkip := "golib"
-	head := "/backup/Documents"
-	fileScanResult := directoryScan(head, subDirToSkip)
-
-	for key, value := range fileScanResult.filepath {
-		fmt.Println(key, value.filename, value.checksum)
-	}
+type FileScanResult struct {
+	Filepath map[string]FileData
 }
 
-func directoryScan(startingPoint string, skip string) fileScanResult {
-	tempHolder := make(map[string]fileData)
+func DirectoryScan(startingPoint string, skip string) FileScanResult {
+	tempHolder := make(map[string]FileData)
 
 	filepath.Walk(startingPoint, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -46,10 +35,10 @@ func directoryScan(startingPoint string, skip string) fileScanResult {
 		if err == nil {
 			fileName := filepath.Base(path)
 			filePath := filepath.Dir(path)
-			file := fileData{
-				filename: fileName,
-				filepath: filePath,
-				checksum: checkSum,
+			file := FileData{
+				Filename: fileName,
+				Filepath: filePath,
+				Checksum: checkSum,
 			}
 			tempHolder[path] = file
 		}
@@ -57,7 +46,7 @@ func directoryScan(startingPoint string, skip string) fileScanResult {
 		//fmt.Println("vistited file or dir without errors %q\n", path)
 		return nil
 	})
-	newFileScan := fileScanResult{filepath: tempHolder}
+	newFileScan := FileScanResult{Filepath: tempHolder}
 	return newFileScan
 }
 
