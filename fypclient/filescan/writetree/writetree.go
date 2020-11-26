@@ -2,7 +2,10 @@ package writetree
 
 import (
 	"encoding/json"
-	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
+	"time"
 
 	"github.com/wade-sam/fypclient/filescan"
 )
@@ -20,10 +23,10 @@ type Files struct {
 type OutputFile struct {
 	PolicyName string `json:"policy-name"`
 	ScanDate   string `json:"scan-date"`
-	FilesList  Files  `json:file-list`
+	Files      map[string]File
 }
 
-func Writetest(filescanresult filescan.FileScanResult) {
+func WriteJSON(filescanresult filescan.FileScanResult) {
 	tempHolder := make(map[string]File)
 
 	for key, value := range filescanresult.Filepath {
@@ -35,14 +38,17 @@ func Writetest(filescanresult filescan.FileScanResult) {
 		tempHolder[key] = newfile
 
 	}
-	fmt.Println("Hello from the other side")
-	//fmt.Println(tempHolder)
-	files := Files{Files: tempHolder}
-	outputfile := OutputFile{PolicyName: "policy1", ScanDate: "26/11/2020:15.13", FilesList: files}
-	byteArray, err := json.MarshalIndent(outputfile, "", "	")
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(string(byteArray))
+	outputfile := OutputFile{PolicyName: "policy1", ScanDate: "26/11/2020:15.13", Files: tempHolder}
+	current_time := time.Now()
 
+	filename := "Backup-" + current_time.Format("01-02-2006 15:04:05") + ".json"
+	os.Chdir("/go/src/github.com/wade-sam/fypclient/file-config")
+	file, err := json.MarshalIndent(outputfile, "", "	")
+	checkError(err)
+	_ = ioutil.WriteFile(filename, file, 0775)
+}
+func checkError(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
 }

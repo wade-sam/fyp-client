@@ -20,8 +20,8 @@ type FileScanResult struct {
 
 func DirectoryScan(startingPoint string, skip string) FileScanResult {
 	tempHolder := make(map[string]FileData)
-
-	filepath.Walk(startingPoint, func(path string, info os.FileInfo, err error) error {
+	os.Chdir(startingPoint)
+	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			fmt.Println("prevent panic by handling failure accessing a path %q: %v\n", path, err)
 			return err
@@ -46,6 +46,9 @@ func DirectoryScan(startingPoint string, skip string) FileScanResult {
 		//fmt.Println("vistited file or dir without errors %q\n", path)
 		return nil
 	})
+	if err != nil {
+		fmt.Printf("Error walking the path %v\n", err)
+	}
 	newFileScan := FileScanResult{Filepath: tempHolder}
 	return newFileScan
 }
