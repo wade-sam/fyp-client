@@ -18,10 +18,10 @@ type FileScanResult struct {
 	Filepath map[string]FileData
 }
 
-func DirectoryScan(startingPoint string, skip string) FileScanResult {
+func InitialDirectoryScan(startingPoint string, skip string) FileScanResult {
 	tempHolder := make(map[string]FileData)
 	os.Chdir(startingPoint)
-	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(startingPoint, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			fmt.Println("prevent panic by handling failure accessing a path %q: %v\n", path, err)
 			return err
