@@ -7,19 +7,33 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"syscall"
 )
 
 type FileData struct {
-	Filepath string
-	Filename string
-	Checksum string
+	Filepath    string
+	Filename    string
+	Permissions Permissions
+	Checksum    string
 }
+
 type FileScanResult struct {
 	Filepath map[string]FileData
+	Keys     []string
+	//Filepath *orderedmap.OrderedMap
+}
+type Ownership struct {
+	UID int
+	GID int
+}
+type Permissions struct {
+	Ownership   Ownership
+	Permissions string
 }
 
 func InitialDirectoryScan(startingPoint string, skip string) FileScanResult {
 	tempHolder := make(map[string]FileData)
+	keylist := []string{}
 	os.Chdir(startingPoint)
 	err := filepath.Walk(startingPoint, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -35,12 +49,21 @@ func InitialDirectoryScan(startingPoint string, skip string) FileScanResult {
 		if err == nil {
 			fileName := filepath.Base(path)
 			filePath := filepath.Dir(path)
+			permissions, ownership := GetPermissions(info)
+			//fmt.Print(permissions, filepath.Dir(path))
+			permHolder := Permissions{
+				Ownership:   ownership,
+				Permissions: permissions,
+			}
 			file := FileData{
-				Filename: fileName,
-				Filepath: filePath,
-				Checksum: checkSum,
+				Filename:    fileName,
+				Filepath:    filePath,
+				Permissions: permHolder,
+				Checksum:    checkSum,
 			}
 			tempHolder[path] = file
+			keylist = append(keylist, path)
+
 		}
 
 		//fmt.Println("vistited file or dir without errors %q\n", path)
@@ -49,8 +72,26 @@ func InitialDirectoryScan(startingPoint string, skip string) FileScanResult {
 	if err != nil {
 		fmt.Printf("Error walking the path %v\n", err)
 	}
-	newFileScan := FileScanResult{Filepath: tempHolder}
+	newFileScan := FileScanResult{
+		Filepath: tempHolder,
+		Keys:     keylist,
+	}
+	//newFileScan := FileScanResult{Filepath: FilescanHolder}
 	return newFileScan
+}
+
+func GetPermissions(info os.FileInfo) (string, Ownership) {
+	Ownership := Ownership{}
+	perm := info.Mode().Perm()
+	if own, ok := info.Sys().(*syscall.Stat_t); ok {
+		Ownership.UID = int(own.Uid)
+		Ownership.GID = int(own.Gid)
+
+	}
+	permissions := fmt.Sprintf("%#o", perm)
+
+	return permissions, Ownership
+
 }
 
 func hashFile(filepath string) (string, error) {

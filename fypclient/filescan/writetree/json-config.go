@@ -14,6 +14,9 @@ import (
 type File struct {
 	FileName      string `json:"filename"`
 	DirectoryPath string `json:"directory-path"`
+	Permissions   string `json:"file-permissions"`
+	UID           int    `json:"file-user-id"`
+	GID           int    `json:"file-group-id"`
 	Checksum      string `json:"checksum"`
 }
 
@@ -39,10 +42,14 @@ func WriteToFile(filescanresult filescan.FileScanResult) {
 
 func ObjectToJson(filescanobject filescan.FileScanResult) OutputFile {
 	tempHolder := make(map[string]File)
-	for key, value := range filescanobject.Filepath {
+	for _, key := range filescanobject.Keys {
+		value := filescanobject.Filepath[key]
 		newfile := File{
 			FileName:      value.Filename,
 			DirectoryPath: value.Filepath,
+			Permissions:   value.Permissions.Permissions,
+			UID:           value.Permissions.Ownership.UID,
+			GID:           value.Permissions.Ownership.GID,
 			Checksum:      value.Checksum,
 		}
 		tempHolder[key] = newfile
