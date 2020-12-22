@@ -12,7 +12,8 @@ func main() {
 	//for key, value := range fileScanResult.Filepath {
 	//	fmt.Println(key, value.Filename, value.Checksum, value.Permissions.Ownership)
 	//	}
-	backup.FullBackup(fileScanResult)
+	//backup.FullBackup(fileScanResult)
+	backup.IncrementalBackup(fileScanResult)
 	//writetree.WriteToFile(fileScanResult)
 	//time.Sleep(20 * time.Second)
 	//	fmt.Println("Checking for differences")

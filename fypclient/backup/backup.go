@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/wade-sam/fypclient/filescan"
+	"github.com/wade-sam/fypclient/filescan/writetree"
 )
 
 func FullBackup(filescan filescan.FileScanResult) {
@@ -20,12 +21,23 @@ func FullBackup(filescan filescan.FileScanResult) {
 		}
 		defer from.Close()
 		newFilePath := "/temp" + value.Filepath
-		newFile := "/temp" + key
+		//newFile := "/temp" + key
 		//fmt.Println(key)
 		CheckFolderExists(newFilePath, value.Filepath)
-		CreateFileBackup(newFile, key, value.Permissions)
+		//CreateFileBackup(newFile, key, value.Permissions)
 		//to, err := os.OpenFile(newFilePath)
 
+	}
+}
+
+func IncrementalBackup(filescan filescan.FileScanResult) {
+	differences := writetree.CompareJsonFile(filescan)
+	for _, key := range differences {
+		value := filescan.Filepath[key]
+		newFilePath := "/temp" + value.Filepath
+		newFile := "/temp" + key
+		CheckFolderExists(newFilePath, value.Filepath)
+		CreateFileBackup(newFile, key, value.Permissions)
 	}
 }
 
@@ -43,7 +55,10 @@ func CreateFolder(directory string, ogdirectory string) {
 	ogperms := fmt.Sprintf("%#o", perm)
 	s, _ := strconv.ParseInt(ogperms, 0, 32)
 	fmt.Println(s)
+	fmt.Println(ogperms, ogdirectory)
 	os.MkdirAll(directory, os.FileMode(s))
+	os.Chmod(directory, os.FileMode(s))
+	//os.MkdirAll(directory, os.FileMode(s))
 	if own, ok := m.Sys().(*syscall.Stat_t); ok {
 		os.Chown(directory, int(own.Uid), int(own.Gid))
 	}
