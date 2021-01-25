@@ -21,14 +21,16 @@ func FullBackup(filescan filescan.FileScanResult) {
 		}
 		defer from.Close()
 		newFilePath := "/temp" + value.Filepath
-		//newFile := "/temp" + key
-		//fmt.Println(key)
+		newFile := "/temp" + key
+		fmt.Println(key)
 		CheckFolderExists(newFilePath, value.Filepath)
-		//CreateFileBackup(newFile, key, value.Permissions)
+		CreateFileBackup(newFile, key, value.Permissions)
 		//to, err := os.OpenFile(newFilePath)
 
 	}
 }
+
+
 
 func IncrementalBackup(filescan filescan.FileScanResult) {
 	differences := writetree.CompareJsonFile(filescan)
