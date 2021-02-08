@@ -18,7 +18,7 @@ func Filescan(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Filescan() called")
 	w.Header().Set("Content-Type", "application/json")
 	subDirToSkip := "golib"
-	head := "/backup"
+	head := "/home/dev"
 	filescan := filescan.InitialDirectoryScan(head, subDirToSkip)
 	//fileScanResult := filescan.InitialDirectoryScan(head, subDirToSkip)
 	response := writetree.ObjectToJson(filescan)
@@ -33,7 +33,7 @@ func FBackup(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode("Full backup started")
 	subDirToSkip := ""
-	head := "/backup"
+	head := "/home/dev"
 	filescan := filescan.InitialDirectoryScan(head, subDirToSkip)
 	backup.FullBackup(filescan)
 	fmt.Println("FullBackup called")
@@ -43,7 +43,7 @@ func IBackup(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode("Incremental backup started")
 	subDirToSkip := "golib"
-	head := "/backup/Documents"
+	head := "/home/dev"
 	filescan := filescan.InitialDirectoryScan(head, subDirToSkip)
 	backup.IncrementalBackup(filescan)
 	fmt.Println("Incremental() started")
