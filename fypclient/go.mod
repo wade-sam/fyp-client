@@ -1,8 +1,9 @@
 module github.com/wade-sam/fypclient
 
-go 1.15
+go 1.16
 
 require (
-	github.com/gorilla/mux v1.8.0
-	github.com/wk8/go-ordered-map v0.2.0
+	github.com/json-iterator/go v1.1.10 // indirect
+	github.com/streadway/amqp v1.0.0 // indirect
+	github.com/stretchr/testify v1.7.0 // indirect
 )

@@ -32,6 +32,7 @@ type Permissions struct {
 }
 
 func InitialDirectoryScan(startingPoint string, skip string) FileScanResult {
+
 	tempHolder := make(map[string]FileData)
 	keylist := []string{}
 	os.Chdir(startingPoint)

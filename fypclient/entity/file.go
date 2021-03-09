@@ -1,27 +1,26 @@
 package entity
 
-type File struct{
-	Name string
-	Path string
-	Checksum string
-	Properties []string
+type File struct {
+	Name       string   `json:"filename,omitempty"`
+	Path       string   `json:"path,omitempty"`
+	Checksum   string   `json:"checksum,omitempty"`
+	Properties []string `json:"properties,omitempty"`
 }
 
-func NewFile (name, path)(*File, error){
+func NewFile(name string) *File {
 	file := &File{
 		Name: name,
-		path: path,
 	}
 
-	return file, nil
+	return file
 }
 
-func (f *File) AddChecksum(path string)error{
-	sha265sum := ""
+func (f *File) AddChecksum(path string) error {
+	f.Checksum = path
+	return nil
+}
 
-	file, err := os.Open(filepath)
-	if err != nil{
-		return ErrOpeningOfFileUnsuccesfull
-	}
-	defer file.Close()
+func (f *File) AddProperties(perms, uid, gid string) {
+	props := []string{perms, uid, gid}
+	f.Properties = props
 }
