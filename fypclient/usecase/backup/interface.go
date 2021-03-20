@@ -4,7 +4,7 @@ import "github.com/wade-sam/fypclient/entity"
 
 type BSRepository interface {
 	DirectoryFile(Directories *entity.Directory)
-	ExpectedFiles(Directories *entity.Directory) error
+	ExpectedFiles(map[string]*entity.File) error
 	FileBackupMesssage(file *entity.File) error
 }
 
@@ -26,6 +26,8 @@ type SNRepository interface {
 // }
 
 type Usecase interface {
-	StartIncrementalBackup(ignore []string) error
-	StartFullBackup(ignore []string) error
+	BackupDirectoryScan(head string, ignore map[string]string) (*map[string]interface{}, error)
+	FullBackupCopy(n *entity.Directory, chn chan (FileTransfer))
+	//StartIncrementalBackup(ignore []string) error
+	//StartFullBackup(ignore []string) error
 }

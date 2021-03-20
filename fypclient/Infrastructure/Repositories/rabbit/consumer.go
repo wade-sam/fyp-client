@@ -1,6 +1,7 @@
 package rabbit
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -27,6 +28,7 @@ type Channels struct {
 }
 
 type DTO struct {
+	ID   string      `json:"id"`
 	Data interface{} `json:"data"`
 }
 
@@ -89,15 +91,36 @@ func (b *Broker) Consume(channel *amqp.Channel) error {
 		return err
 	}
 	for msg := range msgs {
-		_, err := Deserialize(msg.Body)
+		var d DTO
+		//var backupDTO entity.ClientData
+
+		//_, err := Deserialize(msg.Body)
 		if err != nil {
-			log.Println("Can't deserialise message")
+			log.Println("Can't deserialise message", err)
 		}
 
 		switch msg.Type {
 
-		case "backup":
+		case "Full.Backup":
+			//dto := DTO{}
+			//dto.Title = msg.Type
+			//dto.Data = msg.Body
+			//fmt.Println("DATA", d.Data)
+			//err = json.Unmarshal([]byte(msg.Body), &d)
+			//mapstructure.Decode(d.Data, &backupDTO)
+			//backupDTO.Type = msg.Type
+			// temp := entity.ClientData{
+			// 	Type:       msg.Type,
+			// 	Clientname: "samwade",
+			// 	PolicyID:   "Friday Backup",
+			// 	Data:       []string{},
+			// }
+			// d.Data = temp
 
+			err = json.Unmarshal([]byte(msg.Body), &d)
+			d.ID = msg.Type
+			b.Consumer.Channels.Backup <- d
+			fmt.Println("placed", d)
 		case "restore":
 
 		case "New.Client":

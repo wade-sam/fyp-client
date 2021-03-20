@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/streadway/amqp"
-	"github.com/wade-sam/fypclient/entity"
 )
 
 type ProducerConfig struct {
@@ -30,7 +29,8 @@ func (b *Broker) Publish(Type string, body *DTO) error {
 	if err != nil {
 		log.Println(err)
 	}
-	if err := channel.Publish(
+	fmt.Println(Type, "", b.Producer.RoutingKey)
+	err = channel.Publish(
 		b.Producer.ExchangeName,
 		b.Producer.RoutingKey,
 		false,
@@ -40,11 +40,10 @@ func (b *Broker) Publish(Type string, body *DTO) error {
 			ContentType: "encoding/json",
 			Body:        []byte(data),
 		},
-	); err != nil {
+	)
+	if err != nil {
 		return err
 	}
-	r := *&entity.Directory{}
-	err = json.Unmarshal([]byte(data), &r)
 	fmt.Println("Sent message back")
 	return nil
 }
@@ -63,7 +62,7 @@ func Publishmany(c chan DTO, b *Broker, Type string) error {
 	}
 	defer channel.Close()
 	for msg := range c {
-		dto, err := Serialize(&msg)
+		data, err := json.Marshal(msg.Data)
 		if err != nil {
 			log.Println(err)
 		}
@@ -75,7 +74,7 @@ func Publishmany(c chan DTO, b *Broker, Type string) error {
 			amqp.Publishing{
 				Type:        Type,
 				ContentType: "encoding/json",
-				Body:        dto,
+				Body:        []byte(data),
 			},
 		); err != nil {
 			log.Println(err)

@@ -9,6 +9,8 @@ type Repository interface {
 	SetClientName(name string) error
 	SetStorageNode(name string) error
 	GetStorageNode() (string, error)
+	CreateBackupResult(files map[string]*entity.FileDTO) error
+	GetPreviousBackupResult() (map[string]*entity.FileDTO, error)
 }
 
 type Usecase interface {
@@ -16,4 +18,6 @@ type Usecase interface {
 	GetStorageNode() (string, error)
 	SetStorageNode(name string) error
 	DirectoryScan(start string) (*entity.Directory, error)
+	WriteBackupResult(files map[string]*entity.FileDTO) error
+	GetBackupResult() (map[string]*entity.FileDTO, error)
 }

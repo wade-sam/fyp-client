@@ -5,8 +5,11 @@ import (
 	"time"
 
 	"github.com/wade-sam/fypclient/Infrastructure/Repositories/rabbit"
+	"github.com/wade-sam/fypclient/Infrastructure/Repositories/socket"
 	"github.com/wade-sam/fypclient/Infrastructure/Repositories/writetofile"
 	"github.com/wade-sam/fypclient/pubsub/handler"
+
+	"github.com/wade-sam/fypclient/usecase/backup"
 	"github.com/wade-sam/fypclient/usecase/configuration"
 )
 
@@ -14,7 +17,7 @@ func main() {
 	wtf := writetofile.NewFileRepo()
 	//conn_name, err := wtf.GetClientName()
 	config_service := configuration.NewConfigurationService(wtf)
-
+	backup_service := backup.NewBackupService()
 	conn_name, err := config_service.GetClientName()
 	if err != nil {
 		log.Fatal(err)
@@ -60,10 +63,13 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	socket := socket.NewRepository("localhost", "8080", "tcp")
+
 	go handler.ConfigurationHandler(config_service, broker, channs.Config)
+	go handler.BackupHandler(backup_service, config_service, broker, socket, channs.Backup)
 	consumer_chan, err := broker.Start()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("ERR", err)
 	}
 	go broker.Consume(consumer_chan)
 

@@ -1,12 +1,16 @@
 package writetofile
 
 import (
-	"encoding/json"
+	"compress/gzip"
+	"fmt"
 	"io/ioutil"
 	"os"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/wade-sam/fypclient/entity"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 type FileRepo struct{}
 
@@ -110,4 +114,43 @@ func (f *FileRepo) SetStorageNode(ip string) error {
 		return err
 	}
 	return nil
+}
+
+func (f *FileRepo) CreateBackupResult(files map[string]*entity.FileDTO) error {
+	output, err := json.MarshalIndent(files, "", "   ")
+	if err != nil {
+		fmt.Println(entity.ErrCouldNotMarshallJSON)
+	}
+
+	filename := "backup_config.gzip"
+	file, err := json.MarshalIndent(output, "", " ")
+	if err != nil {
+		fmt.Println(entity.ErrCouldNotMarshallJSON)
+	}
+	di, err := os.Create(filename)
+	q := gzip.NewWriter(di)
+	_, err = q.Write([]byte(file))
+	if err != nil {
+		return entity.ErrCouldNotWriteToFile
+	}
+	q.Close()
+	return nil
+}
+
+func (f *FileRepo) GetPreviousBackupResult() (map[string]*entity.FileDTO, error) {
+	var files map[string]*entity.FileDTO
+	fi, err := os.Open("backup_config.gzip")
+	if err != nil {
+		return nil, err
+	}
+	reader, err := gzip.NewReader(fi)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.NewDecoder(reader).Decode(&files)
+	if err != nil {
+		return nil, err
+	}
+	return files, nil
 }

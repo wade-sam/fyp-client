@@ -5,6 +5,7 @@ type File struct {
 	Path       string   `json:"path,omitempty"`
 	Checksum   string   `json:"checksum,omitempty"`
 	Properties []string `json:"properties,omitempty"`
+	Status     string
 }
 
 func NewFile(name string) *File {
