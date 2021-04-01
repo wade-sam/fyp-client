@@ -23,6 +23,11 @@ type SockItem struct {
 	Item   interface{} `json="item"`
 }
 
+type SockFile struct {
+	Metadata *entity.File
+	Data     []byte
+}
+
 func NewRepository(address, port, conn_type string) *Repository {
 	return &Repository{
 		Address:   address,
@@ -64,11 +69,14 @@ func (r *Repository) SendDirectoryLayout(item *SockItem) error {
 }
 
 func (r *Repository) SendFile(item *SockItem) error {
-	item.Type = "file"
+	gob.Register(&SockFile{})
+	item.Type = "filedata"
 	err := r.Encoder.Encode(item)
 	if err != nil {
+		fmt.Println("ERROR, err")
 		return err
 	}
+	//fmt.Println("SENT FILE", item.ID)
 	return nil
 }
 

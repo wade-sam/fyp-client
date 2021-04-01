@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"path"
+	"time"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/wade-sam/fypclient/Infrastructure/Repositories/rabbit"
@@ -54,7 +55,8 @@ func StartIncrementalBackup(service backup.Usecase, configservice configuration.
 }
 
 func StartFullBackup(service backup.Usecase, configservice configuration.Usecase, b *rabbit.Broker, s *socket.Repository, bdto *ClientData) {
-	//write_files_to_disk := make(map[string]*entity.FileDTO)
+
+	write_files_to_disk := make(map[string]*entity.FileDTO)
 	ignoremap := make(map[string]string)
 	for i := range bdto.Data {
 		ignoremap[bdto.Data[i]] = bdto.Data[i]
@@ -64,14 +66,17 @@ func StartFullBackup(service backup.Usecase, configservice configuration.Usecase
 	head := "/home/sam/Documents"
 	scanresult, err := service.BackupDirectoryScan(head, ignoremap)
 	if err != nil {
-		log.Println(err)
+		log.Println("Error could not complete backup Scan", err)
+		return
 	}
 	fmt.Println("COMPLETED SCAN")
 	SNtree := createStorageNodeTree(head, *scanresult)
 
 	err = s.Connect()
 	if err != nil {
-		log.Println(err)
+		log.Println("Error searching for storage node", err)
+		return
+
 	}
 	socket_directory := socket.SockItem{
 		ID:     bdto.PolicyID,
@@ -80,31 +85,92 @@ func StartFullBackup(service backup.Usecase, configservice configuration.Usecase
 	}
 	err = s.SendDirectoryLayout(&socket_directory)
 	if err != nil {
-		log.Println(err)
+		log.Println("Error Could not send directory layout", err)
+		return
 	}
 
-	// workTree := createTotalTree("/", *scanresult)
-	// backupchn := make(chan backup.FileTransfer)
-	// producerchn := make(chan rabbit.DTO)
-	// err = b.PublishManyInitialise(producerchn, "Client.File")
-	// if err != nil {
-	// 	log.Println("ERROR")
-	// }
-	// go service.FullBackupCopy(workTree, backupchn)
-	// for msg := range backupchn {
-	// 	dto := rabbit.DTO{
-	// 		Title: "Client.File",
-	// 		Data:  msg.BSFile,
-	// 	}
-	// 	producerchn <- dto
-	// 	write_files_to_disk[msg.BSFile.ID] = msg.BSFile
-	// 	//fmt.Println("sent", msg.BSFile.ID)
-	// }
-	// close(producerchn)
-	// err = configservice.WriteBackupResult(write_files_to_disk)
-	// if err != nil {
-	// 	log.Println(err)
-	// }
+	workTree := createTotalTree(head, *scanresult)
+	backupchn := make(chan backup.FileTransfer)
+	producerchn := make(chan rabbit.DTO)
+	err = b.PublishManyInitialise(producerchn, "Client.File")
+	if err != nil {
+		log.Println("Error Could Not setup rabbit many producer", err)
+		return
+	}
+	time.Sleep(4 * time.Second)
+	go service.FullBackupCopy(workTree, backupchn)
+	for msg := range backupchn {
+
+		dto := rabbit.DTO{
+			ID:   "Client.File",
+			Data: msg.BSFile,
+		}
+
+		snfile := socket.SockFile{}
+
+		// if msg.Status == "Finished" {
+		// 	snfile.Metadata = msg.SNFile
+		// } else {
+		// 	snfile.Metadata = msg.SNFile
+		// 	snfile.Data = *msg.Data
+		// }
+		//fmt.Println("MESSAGE TO SEND: ", msg)
+		//fmt.Println("SENDING FILE", snfile.Metadata.Path)
+		snmsg := socket.SockItem{
+			ID:     bdto.PolicyID,
+			Client: bdto.Client,
+			//Item:   snfile,
+		}
+
+		// if msg.Status == "Finished" {
+		// 	snfile.Metadata = msg.SNFile
+		// 	snmsg.Item = msg.SNFile
+		// 	err := s.SendCompleteMessage(&snmsg)
+		// 	if err != nil {
+		// 		log.Println(err)
+		// 	}
+		// } else {
+		// 	snfile.Metadata = msg.SNFile
+		// 	snfile.Data = *msg.Data
+		// 	snmsg.Item = msg.SNFile
+		// 	err := s.SendFile(&snmsg)
+		// 	if err != nil {
+		// 		log.Println(err)
+		// 	}
+
+		if msg.Status != "Finished" {
+			snfile.Metadata = msg.SNFile
+			snfile.Data = *msg.Data
+			snmsg.Item = snfile
+			err := s.SendFile(&snmsg)
+			if err != nil {
+				log.Println("Error Could not send file to Storage Node", err)
+				return
+			}
+			producerchn <- dto
+			write_files_to_disk[msg.BSFile.ID] = msg.BSFile
+		} else {
+			snfile.Metadata = msg.SNFile
+			snmsg.Item = snfile
+			err := s.SendCompleteMessage(&snmsg)
+			if err != nil {
+				log.Println("Error Could not send Complete message to Storage Node", err)
+				return
+			}
+			producerchn <- dto
+			close(producerchn)
+			time.Sleep(2 * time.Second)
+		}
+
+		//fmt.Println("sent", msg.BSFile.ID)
+	}
+	//close(producerchn)
+
+	err = configservice.WriteBackupResult(write_files_to_disk)
+	if err != nil {
+		log.Println("Error Could write backup result to disk", err)
+		return
+	}
 	// //bsscan, _, err := service.DirectoryScan("/", ignoremap)
 
 	// sndto := rabbit.DTO{}

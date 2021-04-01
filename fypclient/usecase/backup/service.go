@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io/fs"
+	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -135,8 +136,8 @@ func (s *Service) BackupDirectoryScan(head string, ignorelist map[string]string)
 
 	err := filepath.Walk(head, walkfunc)
 	if err != nil {
-		fmt.Println("ERROR", err)
-		//return nil, err
+		log.Println("Error Could not execute filepath walk", err)
+		return nil, err
 
 		//return nil, nil, err
 	}
@@ -152,12 +153,12 @@ func (s *Service) FullBackupCopy(n *entity.Directory, chn chan (FileTransfer)) {
 	visited := make(map[string]*entity.Directory)
 	queue := list.New()
 	queue.PushBack(n)
-	visited[n.Name] = n
+	visited[n.Path] = n
 	for queue.Len() > 0 {
 		pop := queue.Front()
-		for id, node := range pop.Value.(*entity.Directory).Folders {
-			if _, ok := visited[id]; !ok {
-				visited[id] = node
+		for _, node := range pop.Value.(*entity.Directory).Folders {
+			if _, ok := visited[node.Path]; !ok {
+				visited[node.Path] = node
 				queue.PushBack(node)
 			}
 		}
@@ -169,6 +170,7 @@ func (s *Service) FullBackupCopy(n *entity.Directory, chn chan (FileTransfer)) {
 					Status:   "Failed",
 					Checksum: value.Checksum,
 				}
+				fmt.Println("SENT FILE TYPE: Failed")
 				dto := FileTransfer{
 					Status: "Failed",
 					BSFile: &msg,
@@ -186,13 +188,14 @@ func (s *Service) FullBackupCopy(n *entity.Directory, chn chan (FileTransfer)) {
 					SNFile: value,
 					Data:   data,
 				}
+
 				chn <- dto
-				//time.Sleep(1 * time.Second)
+
 			}
 		}
 		queue.Remove(pop)
 	}
-
+	fmt.Println("FINISHED COPYING FILES")
 	final := entity.FileDTO{
 		Status: "Finished",
 	}
@@ -210,12 +213,12 @@ func copy(path string) (*[]byte, error) {
 		return nil, err
 	}
 	defer file.Close()
-	//filebytes,err  := ioutil.ReadAll(file)
-	temp := []byte(path)
+	filebytes, err := ioutil.ReadAll(file)
+	//temp := []byte(file)
 	if err != nil {
 		return nil, err
 	}
-	return &temp, nil
+	return &filebytes, nil
 }
 
 // func (s *Service) FullBackupFiles(chn chan (FileTransfer), ignore map[string]string) (*entity.FileDTO, error) {
