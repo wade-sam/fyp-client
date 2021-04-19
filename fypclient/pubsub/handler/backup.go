@@ -63,7 +63,7 @@ func StartFullBackup(service backup.Usecase, configservice configuration.Usecase
 	}
 	fmt.Println("REACHED")
 	fmt.Println("map", ignoremap)
-	head := "/home/sam/Documents"
+	head := "/Users/sam/Documents/backup-server"
 	scanresult, err := service.BackupDirectoryScan(head, ignoremap)
 	if err != nil {
 		log.Println("Error could not complete backup Scan", err)
