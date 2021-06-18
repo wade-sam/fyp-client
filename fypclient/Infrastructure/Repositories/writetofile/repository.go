@@ -38,6 +38,7 @@ func NewFileRepo() *FileRepo {
 
 func ReadInJsonFile() (*FileStruct, error) {
 	var file FileStruct
+<<<<<<< HEAD
 	//jsonFile, err := os.Open("/home/sam/Documents/fyp-client/fypclient/Infrastructure/Repositories/writetofile/config.json")
 	jsonFile, err := os.Open("config.json")
 	if err != nil {
@@ -46,6 +47,10 @@ func ReadInJsonFile() (*FileStruct, error) {
 			log.Println(err)
 		}
 		fmt.Println(path)
+=======
+	jsonFile, err := os.Open("/Users/sam/Documents/backup-client/fypclient/Infrastructure/Repositories/writetofile/config.json")
+	if err != nil {
+>>>>>>> 5134f6bfd5d5db16cc8a8142c4e964edd69fe139
 		return nil, entity.ErrFileNotFound
 	}
 	defer jsonFile.Close()
@@ -62,9 +67,13 @@ func WriteJsonFile(file *FileStruct) error {
 	if err != nil {
 		return entity.ErrCouldNotMarshallJSON
 	}
+<<<<<<< HEAD
 
 	//err = ioutil.WriteFile("/home/sam/Documents/fyp-client/fypclient/Infrastructure/Repositories/writetofile/config.json", outputFile, 0775)
 	err = ioutil.WriteFile("config.json", outputFile, 0775)
+=======
+	err = ioutil.WriteFile("/Users/sam/Documents/fyp-client/fypclient/Infrastructure/Repositories/writetofile/config.json", outputFile, 0775)
+>>>>>>> 5134f6bfd5d5db16cc8a8142c4e964edd69fe139
 	if err != nil {
 		return entity.ErrCouldNotWriteToFile
 	}
