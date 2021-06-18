@@ -63,7 +63,7 @@ func StartFullBackup(service backup.Usecase, configservice configuration.Usecase
 	}
 	fmt.Println("REACHED")
 	fmt.Println("map", ignoremap)
-	head := "/home/sam/Documents"
+	head := "/"
 	scanresult, err := service.BackupDirectoryScan(head, ignoremap)
 	if err != nil {
 		log.Println("Error could not complete backup Scan", err)
@@ -107,36 +107,11 @@ func StartFullBackup(service backup.Usecase, configservice configuration.Usecase
 		}
 
 		snfile := socket.SockFile{}
-
-		// if msg.Status == "Finished" {
-		// 	snfile.Metadata = msg.SNFile
-		// } else {
-		// 	snfile.Metadata = msg.SNFile
-		// 	snfile.Data = *msg.Data
-		// }
-		//fmt.Println("MESSAGE TO SEND: ", msg)
-		//fmt.Println("SENDING FILE", snfile.Metadata.Path)
 		snmsg := socket.SockItem{
 			ID:     bdto.PolicyID,
 			Client: bdto.Client,
 			//Item:   snfile,
 		}
-
-		// if msg.Status == "Finished" {
-		// 	snfile.Metadata = msg.SNFile
-		// 	snmsg.Item = msg.SNFile
-		// 	err := s.SendCompleteMessage(&snmsg)
-		// 	if err != nil {
-		// 		log.Println(err)
-		// 	}
-		// } else {
-		// 	snfile.Metadata = msg.SNFile
-		// 	snfile.Data = *msg.Data
-		// 	snmsg.Item = msg.SNFile
-		// 	err := s.SendFile(&snmsg)
-		// 	if err != nil {
-		// 		log.Println(err)
-		// 	}
 
 		if msg.Status != "Finished" {
 			snfile.Metadata = msg.SNFile
@@ -161,21 +136,7 @@ func StartFullBackup(service backup.Usecase, configservice configuration.Usecase
 			close(producerchn)
 			time.Sleep(2 * time.Second)
 		}
-
-		//fmt.Println("sent", msg.BSFile.ID)
 	}
-	//close(producerchn)
-
-	err = configservice.WriteBackupResult(write_files_to_disk)
-	if err != nil {
-		log.Println("Error Could write backup result to disk", err)
-		return
-	}
-	// //bsscan, _, err := service.DirectoryScan("/", ignoremap)
-
-	// sndto := rabbit.DTO{}
-	// sndto.Data = &SNtree
-	//err =   ("Client.Job", &dto)
 
 }
 

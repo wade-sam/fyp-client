@@ -42,7 +42,7 @@ func (b *Broker) Start() (*amqp.Channel, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	b.channel = chn
 	if err := chn.ExchangeDeclare(
 		b.Consumer.ExchangeName,
 		b.Consumer.ExchangeType,

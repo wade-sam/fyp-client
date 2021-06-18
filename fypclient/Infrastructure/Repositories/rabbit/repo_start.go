@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/streadway/amqp"
 )
@@ -22,6 +23,7 @@ type BrokerConfig struct {
 type Broker struct {
 	config     BrokerConfig
 	connection *amqp.Connection
+	channel    *amqp.Channel
 	Producer   ProducerConfig
 	Consumer   ConsumerConfig
 }
@@ -79,4 +81,19 @@ func (r *Broker) Connection() (*amqp.Connection, error) {
 		return nil, errors.New("connection isnt open")
 	}
 	return r.connection, nil
+}
+
+func (r *Broker) Disconnect() error {
+	err := r.channel.Close()
+	if err != nil {
+		return err
+	}
+	// err = r.connection.Close()
+	// if err != nil {
+	// 	return err
+	// }
+	log.Println("Succesfully Disconnected teh rabbitMQ connection")
+	r.connection = nil
+	r.channel = nil
+	return nil
 }

@@ -8,6 +8,7 @@ type Directory struct {
 	Properties []string              `json:"properties,omitempty"`
 	Files      []*File               `json:"files,omitempty"`
 	Folders    map[string]*Directory `json:"folders,omitempty"`
+	NewFolders []*Directory          `json:"children, ommitempty"`
 }
 
 func NewDirectory(name string) *Directory {
@@ -17,6 +18,7 @@ func NewDirectory(name string) *Directory {
 		Properties: []string{},
 		Files:      []*File{},
 		Folders:    map[string]*Directory{},
+		//NewFolders: []*Directory{},
 	}
 }
 func (d *Directory) String() string {

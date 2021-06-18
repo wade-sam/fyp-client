@@ -23,7 +23,8 @@ func ConfigurationHandler(service config.Usecase, b *rabbit.Broker, chn chan str
 }
 
 func GetClient(service config.Usecase, b *rabbit.Broker) {
-	client, err := service.GetClientName()
+	log.Println("trying to connect")
+	client, err := service.ConfigureNewConsumerID()
 	if err != nil {
 		log.Println(err)
 	}
@@ -32,17 +33,47 @@ func GetClient(service config.Usecase, b *rabbit.Broker) {
 
 	fmt.Println(client, err)
 	err = b.Publish("New.Client", &dto)
+	err = b.Disconnect()
+	if err != nil {
+		log.Println("could not disconnect from rabbit broker")
+	}
+	b.Consumer.RoutingKey = client
+	b.Consumer.QueueName = client
+	b.Consumer.ConsumerName = client
+
+	err = b.Connect()
+	if err != nil {
+		log.Fatal("ERR", err)
+	}
+	consumer_chan, err := b.Start()
+	if err != nil {
+		log.Fatal("ERR", err)
+	}
+	go b.Consume(consumer_chan)
+	log.Println("SUCCESS")
+
+	// err = b.Connect()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// b.
+	// consumer_chan, err := b.Start()
+	// if err != nil {
+	// 	log.Fatal("ERR", err)
+	// }
+	// log.Println(consumer_chan)
+	// go b.Consume(consumer_chan)
 }
 
 func DirectoryScan(service config.Usecase, b *rabbit.Broker) {
 	fmt.Println("reached")
 	result, err := service.DirectoryScan("/")
+
 	if err != nil {
 		log.Println(err)
 	}
 	dto := rabbit.DTO{}
 	dto.Data = result
-
-	//fmt.Println(result, err)
+	fmt.Println("sent", err)
 	err = b.Publish("Directory.Scan", &dto)
 }

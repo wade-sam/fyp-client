@@ -15,6 +15,10 @@ import (
 
 func main() {
 	wtf := writetofile.NewFileRepo()
+	storagenodeip, err := wtf.GetStorageNode()
+	if err != nil {
+		log.Println(err)
+	}
 	//conn_name, err := wtf.GetClientName()
 	config_service := configuration.NewConfigurationService(wtf)
 	backup_service := backup.NewBackupService()
@@ -63,7 +67,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	socket := socket.NewRepository("localhost", "8080", "tcp")
+	socket := socket.NewRepository(storagenodeip, "8080", "tcp")
 
 	go handler.ConfigurationHandler(config_service, broker, channs.Config)
 	go handler.BackupHandler(backup_service, config_service, broker, socket, channs.Backup)

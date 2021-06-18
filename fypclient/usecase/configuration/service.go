@@ -8,9 +8,11 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"time"
 
 	jsoniter "github.com/json-iterator/go"
 
+	"github.com/wade-sam/fypclient/Infrastructure/Repositories/writetofile"
 	"github.com/wade-sam/fypclient/entity"
 )
 
@@ -30,22 +32,29 @@ func NewConfigurationService(r Repository) *Service {
 	}
 }
 
+func (s *Service) ConfigureNewConsumerID() (string, error) {
+
+	//creates a random number that is attached onto the hostname to create unique queue name for broker
+	rand.Seed(time.Now().Unix())
+	id := rand.Intn(100000)
+	prename, err := os.Hostname()
+	newname := fmt.Sprintf("%v%v", prename, id)
+	log.Println(newname)
+	err = s.repo.SetClientName(newname)
+	if err != nil {
+		return "", err
+	}
+	return newname, nil
+
+}
+
 func (s *Service) GetClientName() (string, error) {
 	//for hostname check existing host isn't empty. If it is then get the hostname of the system and append random characters on the end e.g. the time/date
 	name, err := s.repo.GetClientName()
 	if err != nil {
 		return "", err
 	}
-	if name == "" {
-		id := rand.Intn(5)
-		prename, err := os.Hostname()
-		newname := fmt.Sprintf("%v%v", prename, id)
-		err = s.repo.SetClientName(newname)
-		if err != nil {
-			return "", err
-		}
-		return newname, nil
-	}
+
 	return name, nil
 }
 
@@ -72,7 +81,10 @@ func (s *Service) DirectoryScan(head string) (*entity.Directory, error) {
 		if err != nil {
 			log.Println(err)
 		} else if info.IsDir() {
-			nodes[loc] = entity.NewDirectory(path.Base(loc)) //loc=filepath path.Base(loc) = dir name
+			dir := entity.NewDirectory(path.Base((loc)))
+			dir.Path = loc
+			nodes[loc] = dir
+			//loc=filepath path.Base(loc) = dir name
 		}
 		return nil
 	}
@@ -92,7 +104,16 @@ func (s *Service) DirectoryScan(head string) (*entity.Directory, error) {
 		}
 		switch v := value.(type) {
 		case *entity.Directory:
-			root.Folders[v.Name] = v //add value to the parents folders.
+			//root.Folders[v.Name] = v
+			if root.NewFolders == nil {
+				tempSlice := []*entity.Directory{}
+				root.NewFolders = tempSlice
+				root.NewFolders = append(root.NewFolders, v)
+			} else {
+				root.NewFolders = append(root.NewFolders, v)
+			}
+			//add value to the parents folders.
+			//log.Println("added", root)
 		}
 	}
 
@@ -109,4 +130,12 @@ func (s *Service) WriteBackupResult(files map[string]*entity.FileDTO) error {
 
 func (s *Service) GetBackupResult() (map[string]*entity.FileDTO, error) {
 	return nil, nil
+}
+
+func (s *Service) GetRabbitDetails() (*writetofile.RabbitConfig, error) {
+	config, err := s.GetRabbitDetails()
+	if err != nil {
+		return nil, err
+	}
+	return config, nil
 }

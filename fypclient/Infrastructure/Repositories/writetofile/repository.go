@@ -4,6 +4,7 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 
 	jsoniter "github.com/json-iterator/go"
@@ -37,8 +38,14 @@ func NewFileRepo() *FileRepo {
 
 func ReadInJsonFile() (*FileStruct, error) {
 	var file FileStruct
-	jsonFile, err := os.Open("/home/sam/Documents/fyp-client/fypclient/Infrastructure/Repositories/writetofile/config.json")
+	//jsonFile, err := os.Open("/home/sam/Documents/fyp-client/fypclient/Infrastructure/Repositories/writetofile/config.json")
+	jsonFile, err := os.Open("config.json")
 	if err != nil {
+		path, err := os.Getwd()
+		if err != nil {
+			log.Println(err)
+		}
+		fmt.Println(path)
 		return nil, entity.ErrFileNotFound
 	}
 	defer jsonFile.Close()
@@ -51,11 +58,13 @@ func ReadInJsonFile() (*FileStruct, error) {
 }
 
 func WriteJsonFile(file *FileStruct) error {
-	outputFile, err := json.MarshalIndent(file, "", "	")
+	outputFile, err := json.MarshalIndent(file, "", " ")
 	if err != nil {
 		return entity.ErrCouldNotMarshallJSON
 	}
-	err = ioutil.WriteFile("/home/sam/Documents/fyp-client/fypclient/Infrastructure/Repositories/writetofile/config.json", outputFile, 0775)
+
+	//err = ioutil.WriteFile("/home/sam/Documents/fyp-client/fypclient/Infrastructure/Repositories/writetofile/config.json", outputFile, 0775)
+	err = ioutil.WriteFile("config.json", outputFile, 0775)
 	if err != nil {
 		return entity.ErrCouldNotWriteToFile
 	}

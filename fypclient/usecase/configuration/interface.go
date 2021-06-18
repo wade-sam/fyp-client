@@ -1,6 +1,7 @@
 package configuration
 
 import (
+	"github.com/wade-sam/fypclient/Infrastructure/Repositories/writetofile"
 	"github.com/wade-sam/fypclient/entity"
 )
 
@@ -11,6 +12,7 @@ type Repository interface {
 	GetStorageNode() (string, error)
 	CreateBackupResult(files map[string]*entity.FileDTO) error
 	GetPreviousBackupResult() (map[string]*entity.FileDTO, error)
+	GetRabbitDetails() (*writetofile.RabbitConfig, error)
 }
 
 type Usecase interface {
@@ -20,4 +22,6 @@ type Usecase interface {
 	DirectoryScan(start string) (*entity.Directory, error)
 	WriteBackupResult(files map[string]*entity.FileDTO) error
 	GetBackupResult() (map[string]*entity.FileDTO, error)
+	ConfigureNewConsumerID() (string, error)
+	GetRabbitDetails() (*writetofile.RabbitConfig, error)
 }
